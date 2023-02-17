@@ -1,36 +1,34 @@
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebElement;
-
-import java.util.List;
-import java.util.Objects;
 
 public class DebitCardTest {
     private WebDriver driver;
 
 
     @BeforeAll
-    static void setUpAll() {
-        System.setProperty("webdriver.chrome.driver", "./driver/linux/chromedriver_old");
+    public static void setUpAll() {
+        WebDriverManager.chromedriver().setup();
 
     }
 
     @BeforeEach
-    void setUp() throws InterruptedException {
+  public void beforeEach() {
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--no-sandbox");
         options.addArguments("--headless");
         driver = new ChromeDriver(options);
+        driver.get("http://localhost:9999");
 
     }
 
     @AfterEach
-    void tearDown() {
+    public void afterEach() {
         driver.quit();
         driver = null;
     }
@@ -38,27 +36,13 @@ public class DebitCardTest {
 
     @Test
     void shouldDataPositive() throws InterruptedException {
-        driver.get("http://0.0.0.0:9999");
-        Thread.sleep(8000);
-        List<WebElement> inputs = driver.findElements(By.tagName("input"));
-        inputs.get(0).sendKeys("Иванов Василий");
-        inputs.get(1).sendKeys("+79998888888");
-        driver.findElement(By.className("checkbox__box")).click();
-        driver.findElement(By.className("button__text")).click();
-        Thread.sleep(8000);
-        String expected = "Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.";
-        List<WebElement> tagsP = driver.findElements(By.tagName("p"));
-        boolean flag = false;
-        for (WebElement tag : tagsP) {
-            tag.getAttribute("data-test-id");
-            if (Objects.equals(tag.getAttribute("data-test-id"), "order-success")) {
-                flag = true;
-                String actual = tag.getText().trim();
-                Assertions.assertEquals(expected, actual);
-            }
+        driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("Иванов Василий");
+        driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("+79998888888");
+        driver.findElement(By.cssSelector("[data-test-id=agreement")).click();
+        driver.findElement(By.cssSelector("button.button")).click();
 
-        }
-        Assertions.assertTrue(flag);
+        var actualText = driver.findElement(By.cssSelector("[data-test-id=order-success]")).getText().trim();
+        Assertions.assertEquals("Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.", actualText);
 
     }
 
